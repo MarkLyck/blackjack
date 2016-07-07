@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Project Title</title>
+    <title>Blackjack</title>
 
     <!-- Normalise -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" media="screen" title="no title" charset="utf-8">
@@ -14,6 +14,48 @@
     <link rel="stylesheet" href="main.css" media="screen">
   </head>
   <body>
+
+    <div id="dealer" class="hand">
+      <h1>Dealer's cards</h1>
+      <ul>
+        <li class="card"></li>
+        <li class="card"></li>
+        <li class="card"></li>
+        <li class="card"></li>
+        <li class="card"></li>
+      </ul>
+    </div>
+    <div id="player" class="hand">
+      <h1>Your cards</h1>
+      <ul>
+        <li class="card"></li>
+        <li class="card"></li>
+        <li class="card"></li>
+        <li class="card"></li>
+        <li class="card"></li>
+      </ul>
+    </div>
+    <div class="actions">
+      <h2>You have: $<span id="money">100</span></h2>
+      <div class="wrapper">
+        <button id="new-game" type="button" name="button">New Game</button>
+        <button id="hit" type="button" name="button">Hit</button>
+        <button id="stand" type="button" name="button">Stand</button>
+      </div>
+      <div class="bet-container">
+        <p>Your bet</p>
+        <input id="bet" type="text" name="name" value="10" placeholder="bet amount">
+      </div>
+
+    </div>
+
+    <div class="modal-container">
+      <div class="game-mode modal">
+        <button id="2-player" type="button" name="button">2-Player</button>
+        <button id="computer" type="button" name="button">computer</button>
+      </div>
+    </div>
+
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-3.0.0.min.js"   integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="   crossorigin="anonymous"></script>
     <script src="app.js" type="text/javascript"></script>
