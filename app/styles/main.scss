@@ -1,0 +1,70 @@
+body {
+  background: #00763B;
+}
+
+ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.card {
+  background: #0c5933;
+  // background-size: cover;
+  // background-repeat: no-repeat;
+  width: 20%;
+  height: 16.8vw;
+  margin-right: 8vw;
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+#dealer {
+  h1 {
+    font-size: 2rem;
+    font-weight: normal;
+  }
+  margin: 0 5vw;
+}
+
+#player {
+  h1 {
+    font-size: 2rem;
+    font-weight: normal;
+  }
+  margin: 0 5vw 30px 5vw;
+}
+
+.actions {
+  margin: 0 5vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bet-container {
+  display: flex;
+  align-items: center;
+  p {
+    margin-right: 10px;
+  }
+}
+
+.modal-container {
+  position: absolute;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  div {
+    background: #fff;
+    border: 0;
+    border-radius: 5px;
+    padding: 30px;
+  }
+}
