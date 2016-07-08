@@ -128,14 +128,12 @@ let $modalContainer = $('.modal-container')
 let $modal = $('.modal')
 
 let gameMode = ''
-let dealer = 'computer'
-// let player = 1
 
-let dealerCards = []
-let playerCards = []
+let apiURL = 'https://tiny-za-server.herokuapp.com/collections/blackjack-players/'
 
 let startMoney = 100
-var bet = 0
+let bet = 0
+let dealerIdentified = false
 
 let deck = new DeckofCards()
 
@@ -147,21 +145,23 @@ let $newGameBtn = $('#new-game')
 let $hitme = $('#hit')
 let $stand = $('#stand')
 
-function Player(hand, number) {
+function Player(number) {
   this.hand = []
   this.number = number
   this.isWaiting = true
 }
 
-let player = new Player(playerCards, 1)
-let opponent = new Player(dealerCards, 2)
+let player = new Player(1)
+let opponent = new Player(2)
+
+// deleteAll()
 
 $2Player.on('click', () => {
   gameMode = '2Player'
   $modal.css('display', 'none')
   console.log('GETTING PLAYERS');
   $.ajax({
-    url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players',
+    url: apiURL,
     type: 'GET',
     success: response => {
       console.log('players: ', response);
@@ -177,15 +177,14 @@ $2Player.on('click', () => {
         player.opponent = response[0]._id
         player.isWaiting = false
 
-        opponent.number = 1
-        opponent._id = response[0]._id
-        opponent.isWaiting = false
+        opponent = response[0]
+
         $modalContainer.css('display', 'none')
       } else {
         console.log('Added to waitlist');
         let searchingForPlayers = setInterval(function() {
           $.ajax({
-            url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players',
+            url: apiURL,
             type: 'GET',
             success: response => {
               console.log('TIME LOOP');
@@ -200,9 +199,8 @@ $2Player.on('click', () => {
                 player.opponent = response[1]._id
                 player.isWaiting = false
 
-                opponent.number = 2
-                opponent._id = response[1]._id
-                opponent.isWaiting = false
+                opponent = response[1]
+
                 $modalContainer.css('display', 'none')
               }
             }
@@ -214,32 +212,36 @@ $2Player.on('click', () => {
   })
 })
 
-// deleteAll()
-
 function postPlayer() {
   console.log('ADDING PLAYER');
   $.ajax({
-    url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players/',
+    url: apiURL,
     type: 'POST',
     data: player,
     success: response => {
       console.log(response)
       player._id = response._id
-      opponent.opponent = player._id
-      if (opponent._id) {
-        console.log('UPDATING OPPONENT');
-        putPlayer(opponent, player.opponent) // Update opponent with player's id.
-      }
     }
   })
 }
 
-function putPlayer(playerToPut, playerToPutID) {
+function putPlayer() {
   console.log('UPDATING PLAYER');
   $.ajax({
-    url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players/' + playerToPutID,
+    url: apiURL + player._id,
     type: 'PUT',
-    data: playerToPut,
+    data: player,
+    success: response => {
+      console.log(response)
+    }
+  })
+}
+function putOpponent() {
+  console.log('UPDATING OPPONENT');
+  $.ajax({
+    url: apiURL + player.opponent,
+    type: 'PUT',
+    data: opponent,
     success: response => {
       console.log(response)
     }
@@ -250,7 +252,7 @@ function putPlayer(playerToPut, playerToPutID) {
 // TODO, figure out how to delete users when exiting game.
 window.onbeforeunload = function(){
   $.ajax({
-    url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players/' + player._id,
+    url: apiURL + player._id,
     type: 'DELETE',
     success: response => {
       console.log(response)
@@ -259,36 +261,134 @@ window.onbeforeunload = function(){
 }
 
 
+
 $computer.on('click', () => {
   gameMode = 'computer'
   $modalContainer.css('display', 'none')
   $modal.css('display', 'none')
 })
 
+
+// deleteAll()
+
 $newGameBtn.on('click', () => {
   console.clear()
+
   if (gameMode === '2Player') {
-    // Assign dealer to a random person
-    if (Math.random() <= 0.5) {
-      dealer = 'player1'
+    if (player.number === 1) { // Only one player can run this function.
+      // Assign dealer to a random person
+      if (Math.random() <= 0.5) {
+        player.isDealer = true
+      } else {
+        player.isDealer = false
+      }
+      putPlayer()
     } else {
-      dealer = 'player2'
+      let waitingForPlayer1 = setInterval(function() {
+        $.ajax({
+          url: apiURL + player.opponent,
+          type: 'GET',
+          contentType: 'application/json',
+          success: responseOpponent => {
+            console.log(apiURL + player.opponent);
+            console.log(responseOpponent);
+            player.opponent = responseOpponent._id
+            if (responseOpponent.isDealer) {
+              console.log('DEALER IDENTIFIED')
+              if (responseOpponent.isDealer === true) {
+                player.isDealer = false
+              } else {
+                player.isDealer = true
+              }
+              dealerIdentified = true
+              clearInterval(waitingForPlayer1)
+            }
+          }
+        })
+      }, 1000)
     }
   }
+
+
   bet = $betInput.val()
   playerCards = []
   dealerCards = []
   $playerCards.children('li').css('background', '#0c5933')
   $dealerCards.children('li').css('background', '#0c5933')
-  deck.buildDeck()
-  deck.shuffle()
-  displayCard(deck.draw(), 'player', 'up')
-  displayCard(deck.draw(), 'dealer', 'up')
-  displayCard(deck.draw(), 'player', 'up')
-  displayCard(deck.draw(), 'dealer', 'down')
+  if (player.number === 1) {
+    deck.buildDeck()
+    deck.shuffle()
+    if (player.isDealer) {
+      displayCard(deck.draw(), 'opponent', 'up')
+      displayCard(deck.draw(), 'player', 'up')
+      displayCard(deck.draw(), 'opponent', 'up')
+      displayCard(deck.draw(), 'player', 'down')
+      putPlayer()
+      putOpponent()
+    } else {
+      displayCard(deck.draw(), 'player', 'up')
+      displayCard(deck.draw(), 'opponent', 'up')
+      displayCard(deck.draw(), 'player', 'up')
+      displayCard(deck.draw(), 'opponent', 'down')
+      if (gameMode === "2Player") {
+        putPlayer()
+        putOpponent()
+      }
+    }
+  } else {
+    let waitingForSetup = setInterval(function() {
+      $.ajax({
+        url: apiURL,
+        type: 'GET',
+        contentType: 'application/json',
+        success: response => {
+          if (dealerIdentified) {
+            console.log('Waiting for setup response', response);
+            response.forEach(item => {
+              console.log('setup item: ', item);
+              if (item._id === player._id || item._id === player.opponent) {
+                if (item._id === player._id) {
+                  console.log('Waiting for Setup - Found player');
+                  if (item.hand !== player.hand) {
+                    player = response
+                    clearInterval(waitingForSetup)
+                    if (player.hand === undefined) {
+                      player.hand = []
+                    }
+                    player.hand.forEach((cardInHand, i) => {
+                      if (i === 1 && player.isDealer) {
+                        displayCard(cardInHand, 'player', 'down')
+                      } else {
+                        displayCard(cardInHand, 'player', 'up')
+                      }
+                    })
+                  }
+                } else {
+                  console.log('Waiting for Setup - Found Opponent');
+                  if (item.hand !== opponent.hand) {
+                    opponent = response
+                    clearInterval(waitingForSetup)
+                    opponent.hand.forEach((cardInHand, i) => {
+                      if (i === 1 && opponent.isDealer) {
+                        displayCard(cardInHand, 'opponent', 'down')
+                      } else {
+                        displayCard(cardInHand, 'opponent', 'up')
+                      }
+                    })
+                  }
+                } // End IF/ELSE
+              }
+            }) // End forEach
+          }
+
+        }
+      }) // End AJAX
+    }, 1000) // End Interval
+  }
   $hitme.attr('disabled', false)
   $stand.attr('disabled', false)
 })
+
 
 $hitme.on('click', () => {
   if (playerCards.length < 5) {
@@ -342,14 +442,22 @@ function calcSum(arr) {
   return points
 }
 
-function displayCard(card, player, face) {
-  let hand = []
-  if (player === 'player') {
-    nextCardHolder = $('#'+player).children('ul').children('li:nth-child(' + Number(playerCards.length+1) + ')')
-    playerCards.push(card)
+
+function displayCard(card, forPlayer, face) {
+  if (player.hand === undefined) {
+    player.hand = []
+  }
+  if (opponent.hand === undefined) {
+    opponent.hand = []
+  }
+  if (forPlayer === 'player') {
+    console.log(player.hand);
+    nextCardHolder = $('#player').children('ul').children('li:nth-child(' + Number(player.hand.length + 1) + ')')
+    player.hand.push(card)
   } else {
-    nextCardHolder = $('#'+player).children('ul').children('li:nth-child(' + Number(dealerCards.length+1) + ')')
-    dealerCards.push(card)
+    console.log('opponent hand: ', opponent);
+    nextCardHolder = $('#opponent').children('ul').children('li:nth-child(' + Number(opponent.hand.length + 1) + ')')
+    opponent.hand.push(card)
   }
   if (face === 'up') {
     nextCardHolder.css('background', 'url("assets/images/cards/' + card.value + '_of_' + card.suit.toLowerCase() + '.svg")')
@@ -360,7 +468,9 @@ function displayCard(card, player, face) {
 }
 
 function revealCard(card) {
-  revealCardHolder = $('#dealer').children('ul').children('li:nth-child(2)')
+  revealCardHolder = $('#opponent').children('ul').children('li:nth-child(2)')
   revealCardHolder.css('background', 'url("assets/images/cards/' + card.value + '_of_' + card.suit.toLowerCase() + '.svg")')
   revealCardHolder.css('background-size', 'cover')
 }
+
+// deleteAll()
