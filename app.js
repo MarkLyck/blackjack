@@ -83,11 +83,26 @@ function DeckofCards() {
   }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Epic mode
 
 // deleteAll()
 
 function deleteAll() {
+  console.log('DELETING ALL PLAYERS');
   $.ajax({
     url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players',
     type: 'GET',
@@ -135,9 +150,7 @@ let $stand = $('#stand')
 function Player(hand, number) {
   this.hand = []
   this.number = number
-  // this.opponent = ''
   this.isWaiting = true
-  // this._id = ''
 }
 
 let player = new Player(playerCards, 1)
@@ -145,12 +158,11 @@ let opponent = new Player(dealerCards, 2)
 
 $2Player.on('click', () => {
   gameMode = '2Player'
-  $modalContainer.css('display', 'none')
   $modal.css('display', 'none')
+  console.log('GETTING PLAYERS');
   $.ajax({
     url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players',
     type: 'GET',
-    contentType: 'application/json',
     success: response => {
       console.log('players: ', response);
       response.filter(foundPlayers => {
@@ -160,6 +172,7 @@ $2Player.on('click', () => {
       })
       if (response.length > 0) {
         console.log('FOUND WAITING PLAYER');
+        console.log(response[0]);
         player.number = 2
         player.opponent = response[0]._id
         player.isWaiting = false
@@ -167,28 +180,62 @@ $2Player.on('click', () => {
         opponent.number = 1
         opponent._id = response[0]._id
         opponent.isWaiting = false
+        $modalContainer.css('display', 'none')
+      } else {
+        console.log('Added to waitlist');
+        let searchingForPlayers = setInterval(function() {
+          $.ajax({
+            url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players',
+            type: 'GET',
+            success: response => {
+              console.log('TIME LOOP');
+              response.filter(foundPlayers => {
+                if (player.isWaiting === true) {
+                  return true
+                }
+              })
+              if (response.length > 1) {
+                console.log('FOUND OTHER PLAYER')
+                clearInterval(searchingForPlayers)
+                player.opponent = response[1]._id
+                player.isWaiting = false
+
+                opponent.number = 2
+                opponent._id = response[1]._id
+                opponent.isWaiting = false
+                $modalContainer.css('display', 'none')
+              }
+            }
+          })
+        }, 5000)
       }
       postPlayer()
     }
   })
 })
 
+// deleteAll()
+
 function postPlayer() {
+  console.log('ADDING PLAYER');
   $.ajax({
     url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players/',
     type: 'POST',
-    data: JSON.stringify(player),
-    contentType: 'application/json',
+    data: player,
     success: response => {
       console.log(response)
       player._id = response._id
       opponent.opponent = player._id
-      // putPlayer(opponent, player.opponent) // Update opponent with player's id.
+      if (opponent._id) {
+        console.log('UPDATING OPPONENT');
+        putPlayer(opponent, player.opponent) // Update opponent with player's id.
+      }
     }
   })
 }
 
 function putPlayer(playerToPut, playerToPutID) {
+  console.log('UPDATING PLAYER');
   $.ajax({
     url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players/' + playerToPutID,
     type: 'PUT',
@@ -199,11 +246,12 @@ function putPlayer(playerToPut, playerToPutID) {
   })
 }
 
+// This clearly doesn't work.
+// TODO, figure out how to delete users when exiting game.
 window.onbeforeunload = function(){
   $.ajax({
     url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players/' + player._id,
     type: 'DELETE',
-    contentType: 'application/json',
     success: response => {
       console.log(response)
     }
