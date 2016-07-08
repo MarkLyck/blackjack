@@ -2,7 +2,7 @@ function Die() {
   this.value = 1
   this.roll = () => {
     this.value = Math.ceil(Math.random()*6)
-    // console.log(this.value);
+    // console.log(this.value)
     return this.value
   }
 }
@@ -21,7 +21,7 @@ function getProbabilities() {
     let index = sum-2
     resultsArray[index] = resultsArray[index]+1
   }
-  // console.log(resultsArray);
+  // console.log(resultsArray)
 }
 
 getProbabilities()
@@ -60,21 +60,21 @@ function DeckofCards() {
   }
   this.shuffle = () => {
     // This code is Fisher-Yates Shuffle. Which is more random than Math.Random
-    var currentIndex = this.listOfCards.length, temporaryValue, randomIndex;
+    var currentIndex = this.listOfCards.length, temporaryValue, randomIndex
 
     // While there remain elements to shuffle...
     while (0 !== currentIndex) {
 
       // Pick a remaining element...
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex -= 1;
+      randomIndex = Math.floor(Math.random() * currentIndex)
+      currentIndex -= 1
 
       // And swap it with the current element.
-      temporaryValue = this.listOfCards[currentIndex];
-      this.listOfCards[currentIndex] = this.listOfCards[randomIndex];
-      this.listOfCards[randomIndex] = temporaryValue;
+      temporaryValue = this.listOfCards[currentIndex]
+      this.listOfCards[currentIndex] = this.listOfCards[randomIndex]
+      this.listOfCards[randomIndex] = temporaryValue
     }
-    return this.listOfCards;
+    return this.listOfCards
   }
   this.draw = () => {
     let topCard = this.listOfCards[0]
@@ -102,7 +102,7 @@ function DeckofCards() {
 // deleteAll()
 
 function deleteAll() {
-  console.log('DELETING ALL PLAYERS');
+  console.log('DELETING ALL PLAYERS')
   $.ajax({
     url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players',
     type: 'GET',
@@ -110,7 +110,7 @@ function deleteAll() {
     success: response => {
       response.forEach((item) => {
         let idToDelete = item._id
-        console.log(idToDelete);
+        console.log(idToDelete)
         $.ajax({
           url: 'https://tiny-za-server.herokuapp.com/collections/blackjack-players/' + idToDelete,
           type: 'DELETE',
@@ -159,20 +159,20 @@ let opponent = new Player(2)
 $2Player.on('click', () => {
   gameMode = '2Player'
   $modal.css('display', 'none')
-  console.log('GETTING PLAYERS');
+  console.log('GETTING PLAYERS')
   $.ajax({
     url: apiURL,
     type: 'GET',
     success: response => {
-      console.log('players: ', response);
+      console.log('players: ', response)
       response.filter(foundPlayers => {
         if (player.isWaiting === true) {
           return true
         }
       })
       if (response.length > 0) {
-        console.log('FOUND WAITING PLAYER');
-        console.log(response[0]);
+        console.log('FOUND WAITING PLAYER')
+        console.log(response[0])
         player.number = 2
         player.opponent = response[0]._id
         player.isWaiting = false
@@ -181,13 +181,13 @@ $2Player.on('click', () => {
 
         $modalContainer.css('display', 'none')
       } else {
-        console.log('Added to waitlist');
+        console.log('Added to waitlist')
         let searchingForPlayers = setInterval(function() {
           $.ajax({
             url: apiURL,
             type: 'GET',
             success: response => {
-              console.log('TIME LOOP');
+              console.log('TIME LOOP')
               response.filter(foundPlayers => {
                 if (player.isWaiting === true) {
                   return true
@@ -213,7 +213,7 @@ $2Player.on('click', () => {
 })
 
 function postPlayer() {
-  console.log('ADDING PLAYER');
+  console.log('ADDING PLAYER')
   $.ajax({
     url: apiURL,
     type: 'POST',
@@ -226,7 +226,7 @@ function postPlayer() {
 }
 
 function putPlayer() {
-  console.log('UPDATING PLAYER');
+  console.log('UPDATING PLAYER')
   $.ajax({
     url: apiURL + player._id,
     type: 'PUT',
@@ -237,7 +237,7 @@ function putPlayer() {
   })
 }
 function putOpponent() {
-  console.log('UPDATING OPPONENT');
+  console.log('UPDATING OPPONENT')
   $.ajax({
     url: apiURL + player.opponent,
     type: 'PUT',
@@ -290,8 +290,8 @@ $newGameBtn.on('click', () => {
           type: 'GET',
           contentType: 'application/json',
           success: responseOpponent => {
-            console.log(apiURL + player.opponent);
-            console.log(responseOpponent);
+            console.log(apiURL + player.opponent)
+            console.log(responseOpponent)
             player.opponent = responseOpponent._id
             if (responseOpponent.isDealer) {
               console.log('DEALER IDENTIFIED')
@@ -343,12 +343,12 @@ $newGameBtn.on('click', () => {
         contentType: 'application/json',
         success: response => {
           if (dealerIdentified) {
-            console.log('Waiting for setup response', response);
+            console.log('Waiting for setup response', response)
             response.forEach(item => {
-              console.log('setup item: ', item);
+              console.log('setup item: ', item)
               if (item._id === player._id || item._id === player.opponent) {
                 if (item._id === player._id) {
-                  console.log('Waiting for Setup - Found player');
+                  console.log('Waiting for Setup - Found player')
                   if (item.hand !== player.hand) {
                     player = response
                     clearInterval(waitingForSetup)
@@ -364,7 +364,7 @@ $newGameBtn.on('click', () => {
                     })
                   }
                 } else {
-                  console.log('Waiting for Setup - Found Opponent');
+                  console.log('Waiting for Setup - Found Opponent')
                   if (item.hand !== opponent.hand) {
                     opponent = response
                     clearInterval(waitingForSetup)
@@ -409,18 +409,18 @@ $stand.on('click', () => {
   let playerPoints = calcSum(playerCards)
   let dealerPoints = calcSum(dealerCards)
   if (playerPoints > 21 && dealerPoints <= 21) {
-    console.log('YOU LOST');
+    console.log('YOU LOST')
   } else {
     while (dealerPoints < 16) { // Simple computer game rules.
       displayCard(deck.draw(), 'dealer', 'up')
       dealerPoints = calcSum(dealerCards)
     }
     if (playerPoints > dealerPoints) {
-      console.log('YOU WON');
+      console.log('YOU WON')
     } else if (playerPoints === dealerPoints) {
-      console.log('It\'s a tie');
+      console.log('It\'s a tie')
     } else {
-      console.log('YOU LOST');
+      console.log('YOU LOST')
     }
   }
   console.log('Player: ', playerPoints)
@@ -451,11 +451,11 @@ function displayCard(card, forPlayer, face) {
     opponent.hand = []
   }
   if (forPlayer === 'player') {
-    console.log(player.hand);
+    console.log(player.hand)
     nextCardHolder = $('#player').children('ul').children('li:nth-child(' + Number(player.hand.length + 1) + ')')
     player.hand.push(card)
   } else {
-    console.log('opponent hand: ', opponent);
+    console.log('opponent hand: ', opponent)
     nextCardHolder = $('#opponent').children('ul').children('li:nth-child(' + Number(opponent.hand.length + 1) + ')')
     opponent.hand.push(card)
   }
