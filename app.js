@@ -21,7 +21,7 @@ function getProbabilities() {
     let index = sum-2
     resultsArray[index] = resultsArray[index]+1
   }
-  // console.log(resultsArray)
+  console.log(resultsArray)
 }
 
 getProbabilities()
