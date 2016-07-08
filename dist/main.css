@@ -15,9 +15,9 @@ ul {
   .card:last-child {
     margin-right: 0; }
 
-#dealer {
+#opponent {
   margin: 0 5vw; }
-  #dealer h1 {
+  #opponent h1 {
     font-size: 2rem;
     font-weight: normal; }
 
